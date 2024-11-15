@@ -1,0 +1,38 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  fullName  String
+  role      Role
+  classes   Class[]   @relation("TraineeClasses") // Classes booked by a trainee
+  createdAt DateTime  @default(now())
+
+  class Class[]
+}
+
+model Class {
+  id          Int        @id @default(autoincrement())
+  date        DateTime   // Date and start time for the class
+  duration    Int        // Duration in hours (e.g., 2)
+  trainerId   Int?       // Trainer responsible for the class (nullable if no trainer is assigned yet)
+  trainer     User?      @relation(fields: [trainerId], references: [id])
+  trainees    User[]     @relation("TraineeClasses")
+  maxCapacity Int        @default(10) // Maximum trainees allowed per class
+  createdAt   DateTime   @default(now())
+}
+
+enum Role {
+  ADMIN
+  TRAINER
+  TRAINEE
+}
