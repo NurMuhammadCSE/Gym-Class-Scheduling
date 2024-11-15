@@ -13,7 +13,7 @@ model User {
   email     String    @unique
   password  String
   fullName  String
-  role      Role
+  role      UserRole
   classes   Class[]   @relation("TraineeClasses") // Classes booked by a trainee
   createdAt DateTime  @default(now())
 
@@ -31,7 +31,7 @@ model Class {
   createdAt   DateTime   @default(now())
 }
 
-enum Role {
+enum UserRole {
   ADMIN
   TRAINER
   TRAINEE
