@@ -22,7 +22,8 @@ const createUser: RequestHandler = catchAsync(
 const loginUser: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
     const { email, password } = req.body;
-    const result = await userService.loginUser(email, password);
+    console.log(email, password)
+    const result = await userService.loginUser(req.body);
 
     sendResponse(res, {
       statusCode: httpStatus.OK,

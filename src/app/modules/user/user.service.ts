@@ -4,18 +4,18 @@ import prisma from "../../../shared/prisma";
 import jwt from "jsonwebtoken";
 
 const createUser = async (data: any) => {
+  // Hash the password
   const hashedPassword: string = await bcrypt.hash(data.password, 12);
 
+  // Replace the plain password with the hashed password
   const userData = {
-    email: data.email,
+    ...data,
     password: hashedPassword,
-    fullName: data.fullName,
-    role: UserRole.ADMIN,
   };
 
   const result = await prisma.$transaction(async (transactionClient) => {
     const createdUser = await transactionClient.user.create({
-      data: userData,
+      data: userData
     });
     return createdUser;
   });
@@ -23,20 +23,29 @@ const createUser = async (data: any) => {
   return result;
 };
 
-const loginUser = async (email: string, password: string) => {
+const loginUser = async (payload: { email: string; password: string }) => {
   const user = await prisma.user.findUnique({
-    where: { email },
+    where: { email: payload.email },
   });
-
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    throw new Error("Invalid email or password");
+  if (!user) {
+    throw new Error("User not found");
   }
 
+  // Check if password is correct
+  const isPasswordValid = await bcrypt.compare(payload.password, user.password);
+  if (!isPasswordValid) {
+    throw new Error("Incorrect password");
+  }
+
+  // Generate JWT
   const token = jwt.sign(
     { id: user.id, role: user.role },
     process.env.JWT_SECRET!,
-    { expiresIn: "1h" }
+    {
+      expiresIn: "1h",
+    }
   );
+
   return { token, user };
 };
 
@@ -66,49 +75,48 @@ const getTrainers = async () => {
 };
 
 const getTrainerClasses = async (trainerId: number) => {
-    const classes = await prisma.class.findMany({
-        where: { trainerId },
+  const classes = await prisma.class.findMany({
+    where: { trainerId },
+    select: {
+      id: true,
+      date: true,
+      duration: true,
+      trainees: {
         select: {
-            id: true,
-            date: true,
-            duration: true,
-            trainees: {
-                select: {
-                    id: true,
-                    fullName: true
-                }
-            }
-        }
-    });
-    return classes;
+          id: true,
+          fullName: true,
+        },
+      },
+    },
+  });
+  return classes;
 };
 
 const getAvailableClasses = async () => {
-    const classes = await prisma.class.findMany({
-        where: {
-            trainees: {
-                some: {
-                    id: {
-                        lt: 10
-                    }
-                }
-            }
+  const classes = await prisma.class.findMany({
+    where: {
+      trainees: {
+        some: {
+          id: {
+            lt: 10,
+          },
         },
+      },
+    },
+    select: {
+      id: true,
+      date: true,
+      duration: true,
+      trainees: {
         select: {
-            id: true,
-            date: true,
-            duration: true,
-            trainees: {
-                select: {
-                    id: true,
-                    fullName: true
-                }
-            }
-        }
-    });
-    return classes;
+          id: true,
+          fullName: true,
+        },
+      },
+    },
+  });
+  return classes;
 };
-
 
 const bookClass = async (classId: number, traineeId: number) => {
   const classDetails = await prisma.class.findUnique({

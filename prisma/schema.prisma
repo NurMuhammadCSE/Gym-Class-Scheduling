@@ -24,7 +24,7 @@ model Class {
   id          Int        @id @default(autoincrement())
   date        DateTime   // Date and start time for the class
   duration    Int        // Duration in hours (e.g., 2)
-  trainerId   Int?       // Trainer responsible for the class (nullable if no trainer is assigned yet)
+  trainerId   Int?       
   trainer     User?      @relation(fields: [trainerId], references: [id])
   trainees    User[]     @relation("TraineeClasses")
   maxCapacity Int        @default(10) // Maximum trainees allowed per class

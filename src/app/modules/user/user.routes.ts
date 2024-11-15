@@ -4,7 +4,7 @@ import { userController } from "./user.controller";
 const router = express.Router();
 
 // Route to create a new user (Admin, Trainer, Trainee)
-router.post("/create", userController.createUser);
+router.post("/register", userController.createUser);
 
 // Route for user login
 router.post("/login", userController.loginUser);
